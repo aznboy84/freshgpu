@@ -40,18 +40,22 @@
 
 /* Move init out of loop, so init once externally, and then use one single memcpy with that bigger memory block */
 typedef struct {
-  sph_shavite512_context  shavite1;
-  sph_simd512_context     simd1;
-  sph_echo512_context     echo1;
+    sph_shavite512_context shavite1;
+    sph_simd512_context simd1;
+    sph_echo512_context echo1;
+	sph_shavite512_context shavite2;
+    sph_simd512_context simd2;
 } Xhash_context_holder;
 
 static Xhash_context_holder base_contexts;
 
 void init_freshhash_contexts()
 {
-  sph_shavite512_init(&base_contexts.shavite1);
-  sph_simd512_init(&base_contexts.simd1);
-  sph_echo512_init(&base_contexts.echo1);
+    sph_shavite512_init(&base_contexts.shavite1);
+    sph_simd512_init(&base_contexts.simd1);
+    sph_echo512_init(&base_contexts.echo1);
+	sph_shavite512_init(&base_contexts.shavite2);
+    sph_simd512_init(&base_contexts.simd2);
 }
 
 /*
@@ -69,30 +73,30 @@ static inline void be32enc_vect(uint32_t *dst, const uint32_t *src, uint32_t len
 
 inline void freshhash(void *state, const void *input)
 {
-  init_freshhash_contexts();
+	init_freshhash_contexts();
 
-  Xhash_context_holder ctx;
+	Xhash_context_holder ctx;
 
-  uint32_t hashA[16], hashB[16];
+	uint32_t hashA[16], hashB[16];
 
-  memcpy(&ctx, &base_contexts, sizeof(base_contexts));
+	memcpy(&ctx, &base_contexts, sizeof(base_contexts));
 
-  sph_shavite512 (&ctx.shavite1, input, 80);
-  sph_shavite512_close(&ctx.shavite1, hashA);
+	sph_shavite512 (&ctx.shavite1, input, 80);
+	sph_shavite512_close(&ctx.shavite1, hashA);
+    
+	sph_simd512 (&ctx.simd1, hashA, 64);
+	sph_simd512_close(&ctx.simd1, hashB);
 
-  sph_simd512 (&ctx.simd1, hashA, 64);
-  sph_simd512_close(&ctx.simd1, hashB);
+	sph_shavite512 (&ctx.shavite2,hashB, 64);
+	sph_shavite512_close(&ctx.shavite2, hashA);
 
-  sph_shavite512 (&ctx.shavite1, hashB, 64);
-  sph_shavite512_close(&ctx.shavite1, hashA);
+	sph_simd512 (&ctx.simd2, hashA, 64);
+	sph_simd512_close(&ctx.simd2, hashB);
 
-  sph_simd512 (&ctx.simd1, hashA, 64);
-  sph_simd512_close(&ctx.simd1, hashB);
+	sph_echo512 (&ctx.echo1, hashB, 64);
+	sph_echo512_close(&ctx.echo1, hashA); 
 
-  sph_echo512 (&ctx.echo1, hashB, 64);
-  sph_echo512_close(&ctx.echo1, hashA);
-
-  memcpy(state, hashB, 32);
+	memcpy(state, hashA, 32);
 }
 
 static const uint32_t diff1targ = 0x0000ffff;
