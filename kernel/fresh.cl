@@ -33,12 +33,10 @@
 #ifndef FRESH_CL
 #define FRESH_CL
 
-#define DEBUG(x)
-
 #if __ENDIAN_LITTLE__
-  #define SPH_LITTLE_ENDIAN 1
+#define SPH_LITTLE_ENDIAN 1
 #else
-  #define SPH_BIG_ENDIAN 1
+#define SPH_BIG_ENDIAN 1
 #endif
 
 #define SPH_UPTR sph_u64
@@ -46,24 +44,24 @@
 typedef unsigned int sph_u32;
 typedef int sph_s32;
 #ifndef __OPENCL_VERSION__
-  typedef unsigned long long sph_u64;
-  typedef long long sph_s64;
+typedef unsigned long long sph_u64;
+typedef long long sph_s64;
 #else
-  typedef unsigned long sph_u64;
-  typedef long sph_s64;
+typedef unsigned long sph_u64;
+typedef long sph_s64;
 #endif
 
 #define SPH_64 1
 #define SPH_64_TRUE 1
 
 #define SPH_C32(x)    ((sph_u32)(x ## U))
-#define SPH_T32(x) (as_uint(x))
-#define SPH_ROTL32(x, n) rotate(as_uint(x), as_uint(n))
+#define SPH_T32(x)    ((x) & SPH_C32(0xFFFFFFFF))
+#define SPH_ROTL32(x, n)   SPH_T32(((x) << (n)) | ((x) >> (32 - (n))))
 #define SPH_ROTR32(x, n)   SPH_ROTL32(x, (32 - (n)))
 
 #define SPH_C64(x)    ((sph_u64)(x ## UL))
-#define SPH_T64(x) (as_ulong(x))
-#define SPH_ROTL64(x, n) rotate(as_ulong(x), (n) & 0xFFFFFFFFFFFFFFFFUL)
+#define SPH_T64(x)    ((x) & SPH_C64(0xFFFFFFFFFFFFFFFF))
+#define SPH_ROTL64(x, n)   SPH_T64(((x) << (n)) | ((x) >> (64 - (n))))
 #define SPH_ROTR64(x, n)   SPH_ROTL64(x, (64 - (n)))
 
 #define SPH_ECHO_64 1
@@ -77,22 +75,14 @@ typedef int sph_s32;
 #define SWAP8(x) as_ulong(as_uchar8(x).s76543210)
 
 #if SPH_BIG_ENDIAN
-  #define DEC64E(x) (x)
-  #define DEC64BE(x) (*(const __global sph_u64 *) (x));
-  #define DEC32LE(x) SWAP4(*(const __global sph_u32 *) (x));
+#define DEC64E(x) (x)
+#define DEC64BE(x) (*(const __global sph_u64 *) (x));
+#define DEC32LE(x) SWAP4(*(const __global sph_u32 *) (x));
 #else
-  #define DEC64E(x) SWAP8(x)
-  #define DEC64BE(x) SWAP8(*(const __global sph_u64 *) (x));
-  #define DEC32LE(x) (*(const __global sph_u32 *) (x));
+#define DEC64E(x) SWAP8(x)
+#define DEC64BE(x) SWAP8(*(const __global sph_u64 *) (x));
+#define DEC32LE(x) (*(const __global sph_u32 *) (x));
 #endif
-
-#define SHL(x, n) ((x) << (n))
-#define SHR(x, n) ((x) >> (n))
-
-#define CONST_EXP2  q[i+0] + SPH_ROTL64(q[i+1], 5)  + q[i+2] + SPH_ROTL64(q[i+3], 11) + \
-                    q[i+4] + SPH_ROTL64(q[i+5], 27) + q[i+6] + SPH_ROTL64(q[i+7], 32) + \
-                    q[i+8] + SPH_ROTL64(q[i+9], 37) + q[i+10] + SPH_ROTL64(q[i+11], 43) + \
-                    q[i+12] + SPH_ROTL64(q[i+13], 53) + (SHR(q[i+14],1) ^ q[i+14]) + (SHR(q[i+15],2) ^ q[i+15])
 
 typedef union {
   unsigned char h1[64];
