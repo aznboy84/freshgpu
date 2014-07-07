@@ -169,19 +169,19 @@ static cl_int queue_fresh_kernel(struct __clState *clState, struct _dev_blk_ctx 
   flip80(clState->cldata, blk->work->data);
   status = clEnqueueWriteBuffer(clState->commandQueue, clState->CLbuffer0, true, 0, 80, clState->cldata, 0, NULL,NULL);
 
-  // shavite - search
+  // blake - search
   kernel = &clState->kernel;
   num = 0;
   CL_SET_ARG(clState->CLbuffer0);
   CL_SET_ARG(clState->padbuffer8);
-  // simd - search1
+  // bmw - search1
   kernel = clState->extra_kernels;
   CL_SET_ARG_0(clState->padbuffer8);
-  // shavite - search2
+  // groestl - search2
   CL_NEXTKERNEL_SET_ARG_0(clState->padbuffer8);
-  // simd - search3
+  // simd - search9
   CL_NEXTKERNEL_SET_ARG_0(clState->padbuffer8);
-  // echo - search4
+  // echo - search10
   num = 0;
   CL_NEXTKERNEL_SET_ARG(clState->padbuffer8);
   CL_SET_ARG(clState->outputBuffer);
@@ -613,7 +613,7 @@ static algorithm_settings_t algos[] = {
   { "bitblockold", ALGO_X15, 1, 1, 1, 0, 0, 0xFF, 0xFFFFULL, 0x0000ffffUL, 10, 8 * 16 * 4194304, 0, bitblock_regenhash, queue_bitblockold_kernel, gen_hash, append_hamsi_compiler_options},
 
   { "talkcoin-mod", ALGO_NIST, 1, 1, 1, 0, 0, 0xFF, 0xFFFFULL, 0x0000ffffUL, 4,  8 * 16 * 4194304, 0, talkcoin_regenhash, queue_talkcoin_mod_kernel, gen_hash, NULL},
-  { "fresh", ALGO_FRESH, 1, 1, 1, 0, 0, 0xFF, 0xFFFFULL, 0x0000ffffUL, 4,  8 * 16 * 4194304, 0, fresh_regenhash, queue_fresh_kernel, gen_hash, NULL},
+  { "fresh", ALGO_FRESH, 1, 256, 256, 0, 0, 0xFF, 0xFFFFULL, 0x0000ffffUL, 4,  4 * 16 * 4194304, 0, fresh_regenhash, queue_fresh_kernel, gen_hash, NULL},
   // kernels starting from this will have difficulty calculated by using fuguecoin algorithm
 #define A_FUGUE(a, b) \
     { a, ALGO_FUGUE, 1, 256, 256, 0, 0, 0xFF, 0xFFFFULL, 0x0000ffffUL, 0, 0, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, b, queue_sph_kernel, sha256, NULL}
